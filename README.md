@@ -23,7 +23,16 @@ This bot provides a seamless way for users to check their VPN configuration stat
 * **Multi-Panel Support:** Manage multiple servers/panels from a single bot interface.
 * **Admin Tools:** Update support ID, edit panel URLs, and monitor all connections via an intuitive admin dashboard.
 
-### 🚀 Installation Guide
+
+## Easy Install for vps/server  ( Ubuntu )
+Just enter the following command in your server terminal and enter information such as the IP or domain connected to the server, the robot token, and the admin ID.
+```
+bash <(curl -s https://raw.githubusercontent.com/aminiyt1/X-UI-Telegram-Bot/main/easyinstall.sh)
+```
+
+
+
+### 🚀 Installation Guide on host
 1.  **Database Setup:**
     * Create a MySQL database.
     * Import the `database.sql` file into your database via phpMyAdmin.
@@ -61,7 +70,14 @@ When adding a panel, use the following format:
 * **پشتیبانی از چند پنل:** امکان اتصال همزمان به چندین سرور و مدیریت یکپارچه آن‌ها.
 * **سیستم پشتیبانی هوشمند:** امکان تغییر آنی آیدی تلگرام پشتیبانی از داخل منوی مدیریت ربات.
 
-### 🚀 آموزش راه‌اندازی
+## نصب آسان در سرور مجازی  ( Ubuntu )
+کافیست دستور زیر را در ترمینال سرور خود وارد کنید و اطلاعات اولیه مانند ای پی یا دامنه متصل به سرور، توکن ربات و ایدی ادمین را وارد کنید.
+```
+bash <(curl -s https://raw.githubusercontent.com/aminiyt1/X-UI-Telegram-Bot/main/easyinstall.sh)
+```
+
+
+### 🚀 آموزش راه‌اندازی هاست
 1.  **آماده‌سازی دیتابیس:**
     * یک دیتابیس MySQL بسازید.
     * فایل `database.sql` را در آن **Import** کنید.
