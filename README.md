@@ -41,7 +41,10 @@ When adding a panel, use the following format:
 `Name|URL|Username|Password`
 
 > **Note:** The bot supports various URL formats including those with custom paths like:
-> `http://83.147.216.45:2097/custompath`
+> `http://Ip:port/custompath`
+> `http://Ip:port`
+> `https://subDomain:port/custompath`
+> `https://subdomain:port`
 
 ---
 
@@ -75,12 +78,12 @@ When adding a panel, use the following format:
 `نام دلخواه|آدرس پنل|نام کاربری|رمز عبور`
 
 > **💡 نکته مهم:** این ربات به طور کامل از **Web Root Path** پشتیبانی می‌کند. 
-> آدرس‌هایی مانند `http://ip:port/path` به صورت خودکار توسط ربات شناسایی و آنالیز می‌شوند.
+> آدرس‌هایی مانند > `http://Ip:port/custompath`
+> `http://Ip:port`
+> `https://subDomain:port/custompath`
+> `https://subdomain:port` به صورت خودکار توسط ربات شناسایی و آنالیز می‌شوند.
 
 ---
-
-## 📸 Screenshots / اسکرین‌شات‌ها
-*(You can add your bot screenshots here to make the README more attractive)*
 
 ## ⚖️ License
 Distributed under the **MIT License**. See `LICENSE` for more information.
