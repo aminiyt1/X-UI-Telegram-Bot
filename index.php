@@ -2,13 +2,16 @@
 // ==========================================
 // تنظیمات ربات و دیتابیس
 // ==========================================
-$botToken = "Tokenbot"; 
-$adminId = 222255568; 
+// $botToken = "Tokenbot"; 
+// $adminId = 222255568; 
 
-$dbHost = "localhost";
-$dbName = "name";
-$dbUser = "user";
-$dbPass = "password";
+// $dbHost = "localhost";
+// $dbName = "name";
+// $dbUser = "user";
+// $dbPass = "password";
+// روش جدید دریافت از کانفیگ ساخته شده
+require_once 'config.php';
+
 
 // اتصال به دیتابیس
 try {
