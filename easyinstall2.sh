@@ -7,6 +7,13 @@ if [ "$(id -u)" -ne 0 ]; then
     exit
 fi
 
+# Disable needrestart prompts
+export NEEDRESTART_MODE=a
+export NEEDRESTART_SUSPEND=1
+
+# Configure dpkg to use old config files without asking
+echo 'DPkg::options { "--force-confdef"; "--force-confold"; }' > /etc/apt/apt.conf.d/local
+
 wait
 echo -e "\e[32m
 :::::::::::::::'########::::'###:::::'######::'##:::'##:::::::::::::   
@@ -79,19 +86,63 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 
+sleep 2
+
+echo -e "\e[32mStep 2: Removing MySQL packages...\e[0m"
+sudo apt-get remove --purge mysql-server mysql-client mysql-common -y 2>/dev/null
+sudo apt-get remove --purge mysql-server-* -y 2>/dev/null
+sudo apt-get remove --purge mysql-client-* -y 2>/dev/null
+sudo apt-get remove --purge mysql-community-server -y 2>/dev/null
+sudo apt-get remove --purge 'mysql-*' -y 2>/dev/null
+sudo apt-get remove --purge mariadb-server mariadb-client -y 2>/dev/null
+
+echo -e "\e[32mStep 3: Removing configuration files...\e[0m"
+sudo rm -rf /etc/mysql
+sudo rm -rf /etc/my.cnf
+sudo rm -rf /etc/my.cnf.d
+sudo rm -rf /etc/mysql/my.cnf
+
+echo -e "\e[32mStep 4: Removing data directories...\e[0m"
+sudo rm -rf /var/lib/mysql
+sudo rm -rf /var/lib/mysql-files
+sudo rm -rf /var/lib/mysql-keyring
+
+echo -e "\e[32mStep 5: Removing log files...\e[0m"
+sudo rm -rf /var/log/mysql
+sudo rm -rf /var/log/mysql.*
+
+echo -e "\e[32mStep 6: Removing temporary files...\e[0m"
+sudo rm -rf /tmp/mysql*
+sudo rm -rf /tmp/ibtmp*
+sudo rm -rf /tmp/ib_logfile*
+
+echo -e "\e[32mStep 7: Removing cache and other files...\e[0m"
+sudo rm -rf /usr/share/mysql
+sudo rm -rf /var/cache/apt/archives/mysql-*
+sudo rm -rf /var/cache/apt/archives/mariadb-*
+
+echo -e "\e[32mStep 8: Removing system users and groups...\e[0m"
+sudo deluser mysql 2>/dev/null
+sudo delgroup mysql 2>/dev/null
+
+echo -e "\e[32mStep 9: Cleaning up remaining packages...\e[0m"
+sudo apt-get autoremove -y
+sudo apt-get autoclean -y
+
+echo -e "\e[32mStep 10: Removing dpkg info...\e[0m"
+sudo rm -rf /var/lib/dpkg/info/mysql*
+
+echo -e "\e[32mStep 11: Reconfiguring dpkg...\e[0m"
+sudo dpkg --configure -a
+
+echo -e "\e[32mStep 12: Final cleanup...\e[0m"
+sudo apt-get clean
+sudo updatedb 2>/dev/null
+
+sleep 2
 
 sudo apt update && apt upgrade -y
 echo -e "\e[92mThe server was successfully updated ...\033[0m\n"
-
-echo -e "\e[32mChecking If Mysql Is Installed ... \033[0m\n"
-sudo systemctl stop mysql
-echo -e "\e[32mDeleting ... \033[0m\n"
-sudo apt purge mysql-server mysql-client mysql-common mysql-server-core-* mysql-client-core-* -y
-sudo apt purge mysql-server mysql-server-8.0 mysql-server-core-8.0 mysql-client-8.0 mysql-client-core-8.0 mysql-common dbconfig-mysql php-mysql php8.3-mysql php-mariadb-mysql-kbs -y
-sudo apt autoremove -y 
-sudo apt autoclean
-sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql /tmp/mysql*
-
 
 clear
 
@@ -200,11 +251,14 @@ wait
 
 # To Install/Extract Orginal Github Repo
 
+sudo rm -rf /root/configxuiinfobot/*
+sudo rm -rf /root/xuiinfobot/*
+sudo rm -rf /var/www/html/xuiinfobot/*
+sudo rm -rf /var/www/html/*
 git clone https://github.com/s-30j/X-UI-Telegram-Bot-EasyInstall.git /var/www/html/xuiinfobot
 git clone https://github.com/s-30j/X-UI-Telegram-Bot-EasyInstall.git /root/xuiinfobot
 sudo chown -R www-data:www-data /var/www/html/xuiinfobot/
 sudo chmod -R 755 /var/www/html/xuiinfobot/
-sudo rm -rf /root/configxuiinfobot/*
 echo "Folder created successfully!"
 
 wait
@@ -231,7 +285,7 @@ echo "${ASAS}user = 'root';" >> /root/configxuiinfobot/dbrootbot.txt
 echo "${ASAS}pass = '${randomdbpasstxt}';" >> /root/configxuiinfobot/dbrootbot.txt
 #echo "${ASAS}paths = '${RANDOM_CODE}';" >> /root/configxuiinfobot/dbrootbot.txt
 
-sleep 1
+sleep 2
 
 passs=$(cat /root/configxuiinfobot/dbrootbot.txt | grep '$pass' | cut -d"'" -f2)
 userrr=$(cat /root/configxuiinfobot/dbrootbot.txt | grep '$user' | cut -d"'" -f2)
@@ -260,67 +314,163 @@ echo -e "\e[35m
 \033[0m\n"
 
 
-is_valid_host() {
-    local input="$1"
-    if [[ $input =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]; then
-        local a=${BASH_REMATCH[1]} b=${BASH_REMATCH[2]} c=${BASH_REMATCH[3]} d=${BASH_REMATCH[4]}
-        if [[ $a -le 255 && $b -le 255 && $c -le 255 && $d -le 255 &&
-              $a -ge 0 && $b -ge 0 && $c -ge 0 && $d -ge 0 ]]; then
-            [[ $a =~ ^0[0-9]+$ || $b =~ ^0[0-9]+$ || $c =~ ^0[0-9]+$ || $d =~ ^0[0-9]+$ ]] && return 1
-            return 0
-        fi
-        return 1
-    fi
-    if [[ $input =~ ^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$ ]]; then
-        [[ ${#input} -gt 253 ]] && return 1
-        return 0
-    fi
-    return 1
-}
+# is_valid_host() {
+#     local input="$1"
+#     if [[ $input =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]; then
+#         local a=${BASH_REMATCH[1]} b=${BASH_REMATCH[2]} c=${BASH_REMATCH[3]} d=${BASH_REMATCH[4]}
+#         if [[ $a -le 255 && $b -le 255 && $c -le 255 && $d -le 255 &&
+#               $a -ge 0 && $b -ge 0 && $c -ge 0 && $d -ge 0 ]]; then
+#             [[ $a =~ ^0[0-9]+$ || $b =~ ^0[0-9]+$ || $c =~ ^0[0-9]+$ || $d =~ ^0[0-9]+$ ]] && return 1
+#             return 0
+#         fi
+#         return 1
+#     fi
+#     if [[ $input =~ ^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$ ]]; then
+#         [[ ${#input} -gt 253 ]] && return 1
+#         return 0
+#     fi
+#     return 1
+# }
 
 
-while true; do
-    read -p "Enter the server IP or domain (without http/https): " host
+# while true; do
+#     read -p "Enter the server IP or domain (without http/https): " host
 
-    if [ -z "$host" ]; then
-        echo -e "\e[1;33mError: You must enter something!\e[0m"
-        continue
-    fi
+#     if [ -z "$host" ]; then
+#         echo -e "\e[1;33mError: You must enter something!\e[0m"
+#         continue
+#     fi
 
-    if is_valid_host "$host"; then
-        echo -e "\e[1;32mFormat looks valid: $host\e[0m"
+#     if is_valid_host "$host"; then
+#         echo -e "\e[1;32mFormat looks valid: $host\e[0m"
 
-        while true; do
-            read -p "Is this correct? ($host) [Y/n]: " -n 1 -r confirm
-            echo
+#         while true; do
+#             read -p "Is this correct? ($host) [Y/n]: " -n 1 -r confirm
+#             echo
 
-            if [[ $confirm =~ ^[Yy]$ || -z $confirm ]]; then
-                echo -e "\e[1;32mConfirmed. Proceeding...\e[0m"
-                echo
-                SERVER_HOST="$host"
-                break 2 
-            elif [[ $confirm =~ ^[Nn]$ ]]; then
-                echo -e "\e[1;33mLet's try again...\e[0m"
-                echo
-                break
-            else
-                echo "Please answer y or n (or just press Enter for Yes)"
-            fi
-        done
-    else
-        echo -e "\e[1;31mInvalid format! Please enter a valid IPv4 or domain (e.g. 192.168.1.1 or example.com)\e[0m"
-        echo
-    fi
-done
+#             if [[ $confirm =~ ^[Yy]$ || -z $confirm ]]; then
+#                 echo -e "\e[1;32mConfirmed. Proceeding...\e[0m"
+#                 echo
+#                 SERVER_HOST="$host"
+#                 break 2 
+#             elif [[ $confirm =~ ^[Nn]$ ]]; then
+#                 echo -e "\e[1;33mLet's try again...\e[0m"
+#                 echo
+#                 break
+#             else
+#                 echo "Please answer y or n (or just press Enter for Yes)"
+#             fi
+#         done
+#     else
+#         echo -e "\e[1;31mInvalid format! Please enter a valid IPv4 or domain (e.g. 192.168.1.1 or example.com)\e[0m"
+#         echo
+#     fi
+# done
 
 
-echo "Server host set to: $SERVER_HOST"
+# echo "Server host set to: $SERVER_HOST"
 
+sleep 3
 
 # Allow HTTP and HTTPS traffic
 echo -e "\n\033[1;7;31mAllowing HTTP and HTTPS traffic...\033[0m\n"
 sudo ufw allow 80
 sudo ufw allow 443
+
+
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root"
+    exit 1
+fi
+
+server_ip=$(curl -s https://api.ipify.org || curl -s https://4.ident.me)
+if [ -z "$server_ip" ]; then
+    echo "Failed to detect server IP"
+    exit 1
+fi
+
+ACME_DIR="/root/.acme.sh"
+ACME_SH="$ACME_DIR/acme.sh"
+
+systemctl stop apache2 >/dev/null 2>&1
+
+if [ ! -f "$ACME_SH" ]; then
+    echo "Installing acme.sh..."
+    rm -rf "$ACME_DIR"
+    git clone https://github.com/acmesh-official/acme.sh.git "$ACME_DIR" >/dev/null 2>&1
+    if [ ! -f "$ACME_SH" ]; then
+        echo "Failed to install acme.sh"
+        systemctl start apache2 >/dev/null 2>&1
+        exit 1
+    fi
+    "$ACME_SH" --install --home "$ACME_DIR" >/dev/null 2>&1
+    "$ACME_SH" --upgrade --auto-upgrade >/dev/null 2>&1
+fi
+
+echo "Issuing short-lived Let's Encrypt certificate for IP: $server_ip..."
+"$ACME_SH" --issue -d "$server_ip" --standalone --httpport 80 --server letsencrypt --certificate-profile shortlived --days 6 --force
+
+if [[ $? -ne 0 ]]; then
+    echo "Failed to issue certificate"
+    echo "Check if port 80 is accessible from internet"
+    systemctl start apache2 >/dev/null 2>&1
+    exit 1
+fi
+
+mkdir -p /root/cert/ip
+
+"$ACME_SH" --install-cert -d "$server_ip" \
+    --fullchain-file /root/cert/ip/fullchain.pem \
+    --key-file /root/cert/ip/privkey.pem \
+    --reloadcmd "systemctl restart apache2"
+
+chmod 600 /root/cert/ip/privkey.pem
+chmod 644 /root/cert/ip/fullchain.pem
+
+# Enable required Apache modules
+echo "Enabling Apache modules (ssl, headers, rewrite)..."
+a2enmod ssl >/dev/null 2>&1
+a2enmod headers >/dev/null 2>&1
+a2enmod rewrite >/dev/null 2>&1
+
+cat > /etc/apache2/sites-available/ip-ssl.conf << EOF
+<VirtualHost _default_:443>
+    ServerName $server_ip
+
+    DocumentRoot /var/www/html
+
+    SSLEngine on
+    SSLCertificateFile /root/cert/ip/fullchain.pem
+    SSLCertificateKeyFile /root/cert/ip/privkey.pem
+
+    <Directory /var/www/html>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog \${APACHE_LOG_DIR}/ip-ssl-error.log
+    CustomLog \${APACHE_LOG_DIR}/ip-ssl-access.log combined
+
+    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite HIGH:!aNULL:!MD5
+    Header always set Strict-Transport-Security "max-age=63072000"
+</VirtualHost>
+EOF
+
+clear
+
+a2ensite ip-ssl.conf >/dev/null 2>&1
+a2dissite default-ssl.conf >/dev/null 2>&1 || true
+a2dissite 000-default.conf >/dev/null 2>&1 || true
+
+systemctl restart apache2
+
+echo "SSL certificate successfully issued and applied to Apache"
+echo "Access URL: https://$server_ip"
+echo "Certificate is short-lived (~6 days)"
+echo "Auto-renew is now ENABLED (cron job + reload Apache on renew)"
+echo "Note: Some browsers may show warnings for IP-based certificates"
 
 
 echo -e "\e[32m======================================"
